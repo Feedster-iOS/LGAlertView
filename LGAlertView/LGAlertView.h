@@ -249,6 +249,8 @@ typedef NS_ENUM(NSUInteger, LGAlertViewWindowLevel) {
 @property (copy, nonatomic, nullable) NSArray *buttonsIconImagesHighlighted;
 @property (copy, nonatomic, nullable) NSArray *buttonsIconImagesDisabled;
 
+@property (copy, nonatomic, nonnull) NSDictionary<NSNumber *, UIView *> *buttonsViews;
+
 /** Default is tintColor */
 @property (strong, nonatomic, nullable) UIColor *buttonsTitleColor UI_APPEARANCE_SELECTOR;
 /** Default is UIColor.whiteColor */
@@ -761,6 +763,9 @@ typedef NS_ENUM(NSUInteger, LGAlertViewWindowLevel) {
 
 - (void)setButtonEnabled:(BOOL)enabled atIndex:(NSUInteger)index;
 - (BOOL)isButtonEnabledAtIndex:(NSUInteger)index;
+
+- (void)setButtonChecked:(BOOL)checked atIndex:(NSUInteger)index;
+- (BOOL)isButtonCheckedAtIndex:(NSUInteger)index;
 
 - (void)layoutValidateWithSize:(CGSize)size;
 

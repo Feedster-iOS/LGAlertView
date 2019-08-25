@@ -131,6 +131,7 @@ LGAlertViewType;
 
 @property (strong, nonatomic) NSMutableDictionary *buttonsPropertiesDictionary;
 @property (strong, nonatomic) NSMutableArray *buttonsEnabledArray;
+@property (strong, nonatomic) NSMutableArray *buttonsCheckedArray;
 
 @property (strong, nonatomic) LGAlertViewCell *heightCell;
 
@@ -910,9 +911,11 @@ LGAlertViewType;
 
 - (void)setupDefaults {
     self.buttonsEnabledArray = [NSMutableArray new];
+    self.buttonsCheckedArray = [NSMutableArray new];
 
     for (NSUInteger i = 0; i < self.buttonTitles.count; i++) {
         [self.buttonsEnabledArray addObject:@YES];
+        [self.buttonsCheckedArray addObject:@NO];
     }
 
     LGAlertView *appearance = [LGAlertView appearance];
@@ -1005,6 +1008,7 @@ LGAlertViewType;
     _buttonsAdjustsFontSizeToFitWidth = appearance.buttonsAdjustsFontSizeToFitWidth;
     _buttonsEnabled = appearance.buttonsEnabled;
     _buttonsIconPosition = appearance.buttonsIconPosition;
+    _buttonsViews = @{};
 
     _cancelButtonTitleColor = appearance.cancelButtonTitleColor;
     _cancelButtonTitleColorHighlighted = appearance.cancelButtonTitleColorHighlighted;
@@ -1434,6 +1438,40 @@ LGAlertViewType;
     return [self.buttonsEnabledArray[index] boolValue];
 }
 
+- (void)setButtonChecked:(BOOL)checked atIndex:(NSUInteger)index {
+    if (self.buttonTitles.count <= index) return;
+    
+    self.buttonsCheckedArray[index] = @(checked);
+    
+    if (self.tableView) {
+        if (self.destructiveButtonTitle) {
+            index++;
+        }
+        
+        LGAlertViewCell *cell = (LGAlertViewCell *)[self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:index inSection:0]];
+        cell.accessoryType = checked ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+    }
+    else if (self.scrollView) {
+//        switch (index) {
+//            case 0:
+//                self.firstButton.enabled = enabled;
+//                break;
+//            case 1:
+//                self.secondButton.enabled = enabled;
+//                break;
+//            case 2:
+//                self.thirdButton.enabled = enabled;
+//                break;
+//            default:
+//                break;
+//        }
+    }
+}
+
+- (BOOL)isButtonCheckedAtIndex:(NSUInteger)index {
+    return [self.buttonsCheckedArray[index] boolValue];
+}
+
 - (void)setButtonPropertiesAtIndex:(NSUInteger)index
                            handler:(void(^ _Nonnull)(LGAlertViewButtonProperties * _Nonnull properties))handler {
     if (!handler || self.buttonTitles.count <= index) return;
@@ -1602,10 +1640,31 @@ LGAlertViewType;
         cell.textLabel.minimumScaleFactor        = (properties.isUserMinimimScaleFactor ? properties.minimumScaleFactor : self.buttonsMinimumScaleFactor);
 
         cell.enabled = [self.buttonsEnabledArray[buttonIndex] boolValue];
+        cell.accessoryType = [self.buttonsCheckedArray[buttonIndex] boolValue] ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
     }
 }
 
 #pragma mark - Table View Delegate
+
+- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (self.destructiveButtonTitle && indexPath.row == 0) {
+    } else if (self.cancelButtonTitle && ![LGAlertViewHelper isCancelButtonSeparate:self] && indexPath.row == self.buttonTitles.count - 1) {
+    } else {
+        NSInteger buttonIndex = indexPath.row - (self.destructiveButtonTitle ? 1 : 0);
+        UIView *view = self.buttonsViews[@(buttonIndex)];
+        if (view && !view.superview)
+            [cell addSubview:view];
+    }
+}
+
+- (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (self.destructiveButtonTitle && indexPath.row == 0) {
+    } else if (self.cancelButtonTitle && ![LGAlertViewHelper isCancelButtonSeparate:self] && indexPath.row == self.buttonTitles.count - 1) {
+    } else {
+        NSInteger buttonIndex = indexPath.row - (self.destructiveButtonTitle ? 1 : 0);
+        [self.buttonsViews[@(buttonIndex)] removeFromSuperview];
+    }
+}
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     [self configCell:self.heightCell forRowAtIndexPath:indexPath];

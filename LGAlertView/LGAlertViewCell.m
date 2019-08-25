@@ -33,6 +33,7 @@
 @interface LGAlertViewCell ()
 
 @property (readwrite) UIView *separatorView;
+@property (nonatomic) UIControl *disableInterationView;
 
 @end
 
@@ -47,6 +48,9 @@
 
         self.separatorView = [UIView new];
         [self addSubview:self.separatorView];
+        
+        self.disableInterationView = [UIControl new];
+        [self addSubview:self.disableInterationView];
 
         self.enabled = YES;
     }
@@ -156,6 +160,8 @@
                                               CGRectGetWidth(self.bounds),
                                               LGAlertViewHelper.separatorHeight);
     }
+    
+    self.disableInterationView.frame = CGRectMake(0, 0, frameWidth, frameHeight);
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
@@ -191,7 +197,7 @@
 - (void)setEnabled:(BOOL)enabled {
     _enabled = enabled;
 
-    self.userInteractionEnabled = enabled;
+    self.disableInterationView.userInteractionEnabled = !enabled;
 
     if (enabled) {
         self.textLabel.textColor = self.titleColor;
